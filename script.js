@@ -1,207 +1,96 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
     const body = document.body;
     const starCountElement = document.getElementById('starCount');
     const phaseElement = document.getElementById('phase');
     const toggleDayNightBtn = document.getElementById('toggleDayNight');
     const starSearch = document.getElementById('starSearch');
     const searchBtn = document.getElementById('searchBtn');
+    const showFavoritesBtn = document.getElementById('showFavoritesBtn');
     const starDetails = document.getElementById('starDetails');
     const closeBtn = starDetails.querySelector('.close-btn');
-    const renameBtn = document.getElementById('renameBtn');
-    const aboutBtn = document.getElementById('aboutBtn');
-    const translateBtn = document.getElementById('translateBtn');
-    const aboutModal = document.getElementById('aboutModal');
-    const closeModal = aboutModal.querySelector('.close-modal');
-    const miniMap = document.querySelector('.mini-map');
-    const viewportIndicator = document.querySelector('.viewport-indicator');
-    
+    const toggleFavoriteBtn = document.getElementById('toggleFavoriteBtn');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+    // State
     let stars = [];
     let starData = {};
-    let animationId;
-    let removeInterval;
     let isDay = false;
     let zoomLevel = 1;
-    let currentZoom = 1;
     let selectedStarId = null;
-    let isEnglish = true;
+    let favoritesMode = false;
+    let animationFrameId;
+    let starCreationInterval;
+    let starRemovalInterval;
     let lifespanUpdateInterval;
 
     // Configuration
     const config = {
-        initialStars: 100,
         maxStars: 2500,
-        addDuration: 20000,
-        removeRate: 2,
-        removeInterval: 5000,
-        minOpacity: 0.3,
-        maxOpacity: 0.9,
+        creationSpeed: 167, // 2500 stars / 15 seconds ≈ 167 stars/second
         minSize: 1,
-        maxSize: 4,
-        minLifespan: 30000, // 30 seconds
+        maxSize: 3.5,
+        minOpacity: 0.4,
+        maxOpacity: 0.95,
+        minLifespan: 45000, // 45 seconds
         maxLifespan: 120000, // 2 minutes
-        clickZoomThreshold: 3,
+        clickZoomThreshold: 2.5,
         starColors: [
-            { temp: 30000, color: '#9bb0ff', name: 'Blue-white' },
-            { temp: 10000, color: '#a6c7ff', name: 'White' },
-            { temp: 7500, color: '#cad7ff', name: 'Light blue' },
-            { temp: 6000, color: '#fff4ea', name: 'Yellow-white' },
-            { temp: 5000, color: '#fff1e0', name: 'Yellow' },
-            { temp: 3500, color: '#ffdfc2', name: 'Orange' },
-            { temp: 2000, color: '#ffb6a3', name: 'Red' }
+            { temp: 30000, color: '#9bb0ff', name: 'Modrobiela' },
+            { temp: 10000, color: '#a6c7ff', name: 'Biela' },
+            { temp: 7500, color: '#cad7ff', name: 'Svetlomodrá' },
+            { temp: 6000, color: '#fff4ea', name: 'Žltobiela' },
+            { temp: 5000, color: '#fff1e0', name: 'Žltá' },
+            { temp: 3500, color: '#ffdfc2', name: 'Oranžová' },
+            { temp: 2000, color: '#ffb6a3', name: 'Červená' }
         ]
-    };
-
-    // Simulation state
-    const state = {
-        starCount: 0,
-        phase: 'initializing',
-        startTime: null,
-        lastStarAdded: 0
-    };
-
-    // Translations
-    const translations = {
-        en: {
-            stars: "Stars",
-            phase: "Phase",
-            loading: "Loading...",
-            adding: "Illuminating",
-            removing: "Dimming",
-            complete: "Stars faded",
-            searchPlaceholder: "Search star (ID/Name)",
-            search: "Search",
-            toggleDayNight: "Toggle Day/Night",
-            about: "About",
-            translate: "Translate to Slovak",
-            starDetails: "Star Details",
-            id: "ID",
-            name: "Name",
-            age: "Age",
-            remaining: "Remaining",
-            temperature: "Temperature",
-            size: "Size",
-            rename: "Rename",
-            aboutTitle: "About Star Map",
-            aboutText: "This is an interactive star map visualization. Features include:",
-            aboutFeatures: [
-                "2500 unique stars with realistic properties",
-                "Dynamic star lifecycles with real-time countdown",
-                "Zoomable interface with mini-map navigation",
-                "Searchable stars by ID or custom name",
-                "Day/night mode toggle",
-                "Detailed star information panel"
-            ],
-            aboutCreated: "Created with HTML, CSS and JavaScript."
-        },
-        sk: {
-            stars: "Hviezdy",
-            phase: "Fáza",
-            loading: "Načítava sa...",
-            adding: "Rozsvecovanie",
-            removing: "Zhasínanie",
-            complete: "Hviezdy zhasli",
-            searchPlaceholder: "Hľadať hviezdu (ID/Meno)",
-            search: "Hľadať",
-            toggleDayNight: "Prepnúť deň/noc",
-            about: "O stránke",
-            translate: "Preložiť do angličtiny",
-            starDetails: "Detail hviezdy",
-            id: "ID",
-            name: "Meno",
-            age: "Vek",
-            remaining: "Zostáva",
-            temperature: "Teplota",
-            size: "Veľkosť",
-            rename: "Premenovať",
-            aboutTitle: "O Hviezdnej Mape",
-            aboutText: "Toto je interaktívna vizualizácia hviezdnej oblohy. Ponúka:",
-            aboutFeatures: [
-                "2500 unikátnych hviezd s realistickými vlastnosťami",
-                "Dynamický životný cyklus hviezd s aktuálnym odpočtom",
-                "Približovací interface s miniatúrnou mapou",
-                "Vyhľadávanie hviezd podľa ID alebo vlastného mena",
-                "Prepínanie dňa a noci",
-                "Detailný panel s informáciami o hviezdach"
-            ],
-            aboutCreated: "Vytvorené pomocou HTML, CSS a JavaScript."
-        }
     };
 
     // Initialize
     function init() {
-        state.phase = 'adding';
-        state.startTime = Date.now();
-        createInitialStars();
-        updateInfo();
-        animate();
         setupEventListeners();
-        updateMiniMap();
+        createStars();
         startLifespanUpdates();
+        updatePhaseText('Vytváram hviezdy...');
     }
 
     function setupEventListeners() {
         toggleDayNightBtn.addEventListener('click', toggleDayNight);
         searchBtn.addEventListener('click', searchStar);
-        starSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchStar();
-        });
-        closeBtn.addEventListener('click', () => {
-            stars.forEach(star => star.classList.remove('highlighted'));
-            starDetails.style.display = 'none';
-        });
-        renameBtn.addEventListener('click', renameStar);
-        aboutBtn.addEventListener('click', () => {
-            aboutModal.style.display = 'block';
-        });
-        closeModal.addEventListener('click', () => {
-            aboutModal.style.display = 'none';
-        });
-        translateBtn.addEventListener('click', toggleLanguage);
+        starSearch.addEventListener('keypress', (e) => e.key === 'Enter' && searchStar());
+        closeBtn.addEventListener('click', closeStarDetails);
+        toggleFavoriteBtn.addEventListener('click', toggleFavorite);
+        showFavoritesBtn.addEventListener('click', toggleFavoritesMode);
+        zoomInBtn.addEventListener('click', () => adjustZoom(0.5));
+        zoomOutBtn.addEventListener('click', () => adjustZoom(-0.5));
+        document.addEventListener('wheel', handleWheelZoom, { passive: false });
+    }
+
+    function createStars() {
+        let starsCreated = 0;
+        const totalStars = config.maxStars;
         
-        // Zoom with mouse wheel
-        document.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY * -0.002;
-            zoomLevel = Math.min(Math.max(0.5, zoomLevel + delta), 10);
-            applyZoom();
-            updateStarClickability();
-            updateMiniMap();
-        });
-        
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target === aboutModal) {
-                aboutModal.style.display = 'none';
+        starCreationInterval = setInterval(() => {
+            if (starsCreated >= totalStars) {
+                clearInterval(starCreationInterval);
+                updatePhaseText('Hviezdy vytvorené');
+                startStarRemoval();
+                return;
             }
-        });
+            
+            addStar();
+            starsCreated++;
+            starCountElement.textContent = starsCreated;
+            
+            // Update progress
+            const progress = Math.floor((starsCreated / totalStars) * 100);
+            updatePhaseText(`Vytváram hviezdy... ${progress}%`);
+        }, 1000 / config.creationSpeed);
     }
 
-    function applyZoom() {
-        currentZoom = zoomLevel;
-        body.style.transform = `scale(${zoomLevel})`;
-    }
-
-    function updateStarClickability() {
-        stars.forEach(star => {
-            if (zoomLevel >= config.clickZoomThreshold) {
-                star.classList.add('clickable');
-            } else {
-                star.classList.remove('clickable');
-                star.classList.remove('highlighted');
-            }
-        });
-    }
-
-    function createInitialStars() {
-        for (let i = 0; i < config.initialStars; i++) {
-            addStar(true);
-        }
-    }
-
-    function addStar(instant = false) {
-        if (state.starCount >= config.maxStars) return;
-        
-        const starId = 'star-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    function addStar() {
+        const starId = 'star-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const star = document.createElement('div');
         star.className = 'star';
         star.id = starId;
@@ -212,56 +101,32 @@ document.addEventListener('DOMContentLoaded', function() {
         star.style.left = `${Math.random() * 100}vw`;
         star.style.top = `${Math.random() * 100}vh`;
         
-        // Assign star color based on temperature
-        const temp = Math.random() * 40000 + 2000;
-        const colorData = config.starColors.find(c => temp >= c.temp) || config.starColors[config.starColors.length - 1];
-        const color = colorData.color;
-        const colorName = colorData.name;
-        
-        star.style.backgroundColor = color;
+        const colorData = getStarColorData(Math.random() * 40000 + 2000);
+        star.style.backgroundColor = colorData.color;
         
         // Save star data
-        const creationTime = Date.now();
-        const lifespan = Math.random() * (config.maxLifespan - config.minLifespan) + config.minLifespan;
-        
         starData[starId] = {
             id: starId,
-            name: `${colorName} Star ${state.starCount + 1}`,
-            temp: Math.round(temp),
-            color: color,
-            colorName: colorName,
+            name: `${colorData.name} ${stars.length + 1}`,
+            temp: Math.round(colorData.temp),
+            color: colorData.color,
+            colorName: colorData.name,
             size: size.toFixed(1),
-            creationTime: creationTime,
-            lifespan: lifespan,
-            remainingTime: lifespan
+            creationTime: Date.now(),
+            lifespan: Math.random() * (config.maxLifespan - config.minLifespan) + config.minLifespan,
+            isFavorite: false
         };
         
-        if (instant) {
-            star.style.opacity = config.minOpacity;
-        } else {
-            star.style.opacity = Math.random() * (config.maxOpacity - config.minOpacity) + config.minOpacity;
-            animateStar(star);
-        }
-        
-        // Make star interactive when zoomed in
-        star.addEventListener('click', (e) => {
-            if (zoomLevel >= config.clickZoomThreshold) {
-                e.stopPropagation();
-                showStarDetails(starId);
-                
-                // Highlight the star
-                stars.forEach(s => s.classList.remove('highlighted'));
-                star.classList.add('highlighted');
-                
-                // Center view on the star
-                centerViewOnStar(star);
-            }
-        });
+        star.style.opacity = Math.random() * (config.maxOpacity - config.minOpacity) + config.minOpacity;
+        star.addEventListener('click', handleStarClick);
         
         body.appendChild(star);
         stars.push(star);
-        state.starCount++;
-        state.lastStarAdded = Date.now();
+        animateStar(star);
+    }
+
+    function getStarColorData(temperature) {
+        return config.starColors.find(c => temperature >= c.temp) || config.starColors[config.starColors.length - 1];
     }
 
     function animateStar(star) {
@@ -269,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const duration = Math.random() * 2000 + 1000;
             const targetOpacity = Math.random() * (config.maxOpacity - config.minOpacity) + config.minOpacity;
             
-            star.style.transition = `opacity ${duration/2000}s ease-in-out`;
+            star.style.transition = `opacity ${duration/1000}s ease`;
             star.style.opacity = targetOpacity;
             
             setTimeout(animate, duration);
@@ -277,77 +142,27 @@ document.addEventListener('DOMContentLoaded', function() {
         animate();
     }
 
-    function removeStars() {
-        for (let i = 0; i < config.removeRate; i++) {
+    function startStarRemoval() {
+        starRemovalInterval = setInterval(() => {
             if (stars.length === 0) {
-                clearInterval(removeInterval);
-                state.phase = 'complete';
-                updatePhaseText();
+                clearInterval(starRemovalInterval);
+                updatePhaseText('Všetky hviezdy zhasli');
                 return;
             }
             
-            const star = stars.pop();
-            const starId = star.id;
-            delete starData[starId];
-            star.parentNode.removeChild(star);
-            state.starCount--;
-        }
-        updateInfo();
-    }
-
-    function startRemovingStars() {
-        removeInterval = setInterval(removeStars, config.removeInterval);
-    }
-
-    function animate() {
-        const now = Date.now();
-        const elapsed = (now - state.startTime) / 1000;
-
-        if (state.phase === 'adding') {
-            const targetStars = Math.min(
-                config.initialStars + Math.floor((config.maxStars - config.initialStars) * (elapsed / (config.addDuration/1000))),
-                config.maxStars
-            );
+            // Remove random star
+            const randomIndex = Math.floor(Math.random() * stars.length);
+            const star = stars[randomIndex];
+            delete starData[star.id];
+            star.remove();
+            stars.splice(randomIndex, 1);
             
-            while (state.starCount < targetStars && (now - state.lastStarAdded) > 10) {
-                addStar();
-            }
-
-            if (state.starCount >= config.maxStars) {
-                state.phase = 'removing';
-                startRemovingStars();
-            }
-        }
-
-        updateInfo();
-        
-        if (state.phase !== 'removing' && state.phase !== 'complete') {
-            animationId = requestAnimationFrame(animate);
-        }
-    }
-
-    function updateInfo() {
-        starCountElement.textContent = state.starCount;
-        updatePhaseText();
-    }
-
-    function updatePhaseText() {
-        const now = Date.now();
-        const elapsed = (now - state.startTime) / 1000;
-        
-        if (state.phase === 'adding') {
-            const progress = Math.round((state.starCount - config.initialStars) / (config.maxStars - config.initialStars) * 100);
-            phaseElement.textContent = isEnglish ? 
-                `Illuminating (${progress}%)` : `Rozsvecovanie (${progress}%)`;
-        } 
-        else if (state.phase === 'removing') {
-            const progress = Math.round(stars.length / config.maxStars * 100);
-            phaseElement.textContent = isEnglish ? 
-                `Dimming (${progress}%)` : `Zhasínanie (${progress}%)`;
-        }
-        else if (state.phase === 'complete') {
-            phaseElement.textContent = isEnglish ? 'Stars faded' : 'Hviezdy zhasli';
-        }
+            starCountElement.textContent = stars.length;
+            
+            // Update removal progress
+            const progress = Math.floor((1 - (stars.length / config.maxStars)) * 100);
+            updatePhaseText(`Zhasínanie... ${progress}%`);
+        }, 100);
     }
 
     function startLifespanUpdates() {
@@ -362,31 +177,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (starId === selectedStarId) {
                     updateStarDetails(starId);
                 }
-                
-                // Remove star if its time has come
-                if (star.remainingTime <= 0 && stars.some(s => s.id === starId)) {
-                    const starElement = document.getElementById(starId);
-                    if (starElement) {
-                        starElement.remove();
-                        stars = stars.filter(s => s.id !== starId);
-                        state.starCount--;
-                        delete starData[starId];
-                    }
-                }
             });
-            
-            updateInfo();
         }, 1000);
     }
 
-    function toggleDayNight() {
-        isDay = !isDay;
-        body.classList.toggle('day-mode', isDay);
+    function handleStarClick(e) {
+        e.stopPropagation();
+        const starId = this.id;
         
-        stars.forEach(star => {
-            star.style.opacity = isDay ? '0.2' : 
-                (Math.random() * (config.maxOpacity - config.minOpacity) + config.minOpacity);
-        });
+        // Highlight the star
+        stars.forEach(s => s.classList.remove('highlighted'));
+        this.classList.add('highlighted');
+        
+        // Show details
+        showStarDetails(starId);
     }
 
     function showStarDetails(starId) {
@@ -397,17 +201,121 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateStarDetails(starId) {
         const star = starData[starId];
-        if (!star) {
-            starDetails.style.display = 'none';
-            return;
-        }
+        if (!star) return;
         
         document.getElementById('detail-id').textContent = star.id;
-        document.getElementById('detail-name').value = star.name;
+        document.getElementById('detail-name').textContent = star.name;
         document.getElementById('detail-age').textContent = formatTime(Date.now() - star.creationTime);
         document.getElementById('detail-lifespan').textContent = formatTime(star.remainingTime);
         document.getElementById('detail-temp').textContent = `${star.temp} K (${star.colorName})`;
-        document.getElementById('detail-size').textContent = `${star.size} px`;
+        
+        // Update favorite button
+        toggleFavoriteBtn.textContent = star.isFavorite ? '❤ Odobrať z obľúbených' : '❤ Pridať k obľúbeným';
+        toggleFavoriteBtn.classList.toggle('favorited', star.isFavorite);
+    }
+
+    function closeStarDetails() {
+        stars.forEach(star => star.classList.remove('highlighted'));
+        starDetails.style.display = 'none';
+        selectedStarId = null;
+    }
+
+    function toggleFavorite() {
+        if (!selectedStarId) return;
+        
+        const star = starData[selectedStarId];
+        star.isFavorite = !star.isFavorite;
+        
+        const starElement = document.getElementById(selectedStarId);
+        if (starElement) {
+            starElement.classList.toggle('favorite', star.isFavorite);
+        }
+        
+        updateStarDetails(selectedStarId);
+    }
+
+    function toggleFavoritesMode() {
+        favoritesMode = !favoritesMode;
+        
+        if (favoritesMode) {
+            // Show only favorites
+            stars.forEach(star => {
+                star.style.display = starData[star.id]?.isFavorite ? 'block' : 'none';
+            });
+            showFavoritesBtn.textContent = '★ Zobraziť všetky';
+            updatePhaseText('Zobrazené obľúbené hviezdy');
+        } else {
+            // Show all stars
+            stars.forEach(star => star.style.display = 'block');
+            showFavoritesBtn.textContent = '★ Obľúbené';
+            updatePhaseText('Zobrazené všetky hviezdy');
+        }
+    }
+
+    function searchStar() {
+        const query = starSearch.value.trim().toLowerCase();
+        if (!query) return;
+        
+        // Find star by ID or name
+        let foundStar = null;
+        
+        for (const starId in starData) {
+            const star = starData[starId];
+            if (star.id.toLowerCase().includes(query) || star.name.toLowerCase().includes(query)) {
+                foundStar = document.getElementById(starId);
+                break;
+            }
+        }
+        
+        if (foundStar) {
+            // Highlight and show details
+            stars.forEach(s => s.classList.remove('highlighted'));
+            foundStar.classList.add('highlighted');
+            showStarDetails(foundStar.id);
+            
+            // Center in view
+            foundStar.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center'
+            });
+        } else {
+            alert("Hviezda nebola nájdená");
+        }
+    }
+
+    function toggleDayNight() {
+        isDay = !isDay;
+        body.classList.toggle('day-mode', isDay);
+        
+        stars.forEach(star => {
+            star.style.opacity = isDay ? '0.1' : 
+                (Math.random() * (config.maxOpacity - config.minOpacity) + config.minOpacity);
+        });
+    }
+
+    function handleWheelZoom(e) {
+        e.preventDefault();
+        const delta = e.deltaY * -0.002;
+        adjustZoom(delta);
+    }
+
+    function adjustZoom(delta) {
+        zoomLevel = Math.min(Math.max(1, zoomLevel + delta), 5);
+        applyZoom();
+    }
+
+    function applyZoom() {
+        body.style.transform = `scale(${zoomLevel})`;
+        
+        // Update star clickability based on zoom level
+        stars.forEach(star => {
+            star.classList.toggle('clickable', zoomLevel >= config.clickZoomThreshold);
+        });
+    }
+
+    function updatePhaseText(text) {
+        phaseElement.textContent = text;
     }
 
     function formatTime(ms) {
@@ -424,144 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function searchStar() {
-        const query = starSearch.value.trim().toLowerCase();
-        if (!query) return;
-        
-        // Remove highlight from all stars
-        stars.forEach(star => star.classList.remove('highlighted'));
-        
-        // Search by ID or name
-        let foundStar = null;
-        
-        for (const starId in starData) {
-            const star = starData[starId];
-            if (star.id.toLowerCase().includes(query) || star.name.toLowerCase().includes(query)) {
-                foundStar = document.getElementById(starId);
-                break;
-            }
-        }
-        
-        if (foundStar) {
-            // Zoom to required level for clickability
-            if (zoomLevel < config.clickZoomThreshold) {
-                zoomLevel = config.clickZoomThreshold;
-                applyZoom();
-                updateStarClickability();
-            }
-            
-            // Center view on the star
-            centerViewOnStar(foundStar);
-            
-            // Highlight the star and show details
-            setTimeout(() => {
-                foundStar.classList.add('highlighted');
-                showStarDetails(foundStar.id);
-            }, 500);
-        } else {
-            alert(isEnglish ? "Star not found" : "Hviezda nebola nájdená");
-        }
-    }
-
-    function centerViewOnStar(starElement) {
-        const starRect = starElement.getBoundingClientRect();
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const offsetX = centerX - starRect.left - starRect.width/2;
-        const offsetY = centerY - starRect.top - starRect.height/2;
-        
-        body.style.transform = `scale(${zoomLevel}) translate(${offsetX/zoomLevel}px, ${offsetY/zoomLevel}px)`;
-        updateMiniMap();
-    }
-
-    function renameStar() {
-        if (!selectedStarId) return;
-        
-        const newName = document.getElementById('detail-name').value.trim();
-        if (newName && starData[selectedStarId]) {
-            starData[selectedStarId].name = newName;
-        }
-    }
-
-    function updateMiniMap() {
-        // Calculate viewport position and size on the mini-map
-        const viewportWidth = (1 / zoomLevel) * 100;
-        const viewportHeight = (1 / zoomLevel) * 100;
-        
-        // Calculate position based on current transform
-        const transform = window.getComputedStyle(body).transform;
-        let x = 0, y = 0;
-        
-        if (transform && transform !== 'none') {
-            const matrix = transform.match(/^matrix\((.+)\)$/);
-            if (matrix) {
-                const values = matrix[1].split(', ');
-                if (values.length === 6) {
-                    x = parseFloat(values[4]) / zoomLevel;
-                    y = parseFloat(values[5]) / zoomLevel;
-                }
-            }
-        }
-        
-        // Convert to percentage for mini-map
-        const posX = (-x / window.innerWidth) * 100;
-        const posY = (-y / window.innerHeight) * 100;
-        
-        viewportIndicator.style.width = `${viewportWidth}%`;
-        viewportIndicator.style.height = `${viewportHeight}%`;
-        viewportIndicator.style.left = `${posX}%`;
-        viewportIndicator.style.top = `${posY}%`;
-    }
-
-    function toggleLanguage() {
-        isEnglish = !isEnglish;
-        applyLanguage();
-    }
-
-    function applyLanguage() {
-        const lang = isEnglish ? 'en' : 'sk';
-        const t = translations[lang];
-        
-        // Update UI elements
-        document.querySelector('.counter .label').textContent = t.stars + ":";
-        document.querySelector('.phase .label').textContent = t.phase + ":";
-        starSearch.placeholder = t.searchPlaceholder;
-        searchBtn.textContent = t.search;
-        toggleDayNightBtn.textContent = t.toggleDayNight;
-        aboutBtn.textContent = t.about;
-        translateBtn.textContent = t.translate;
-        starDetails.querySelector('h3').textContent = t.starDetails;
-        document.getElementById('detail-id').previousElementSibling.textContent = t.id + ":";
-        document.getElementById('detail-name').previousElementSibling.textContent = t.name + ":";
-        document.getElementById('detail-age').previousElementSibling.textContent = t.age + ":";
-        document.getElementById('detail-lifespan').previousElementSibling.textContent = t.remaining + ":";
-        document.getElementById('detail-temp').previousElementSibling.textContent = t.temperature + ":";
-        document.getElementById('detail-size').previousElementSibling.textContent = t.size + ":";
-        renameBtn.textContent = t.rename;
-        
-        // Update about modal
-        const modal = aboutModal.querySelector('.modal-content');
-        modal.querySelector('h2').textContent = t.aboutTitle;
-        modal.querySelector('p').textContent = t.aboutText;
-        const features = modal.querySelectorAll('li');
-        t.aboutFeatures.forEach((feature, i) => {
-            if (features[i]) features[i].textContent = feature;
-        });
-        modal.querySelectorAll('p')[1].textContent = t.aboutCreated;
-        
-        // Update phase text
-        updatePhaseText();
-    }
-
     // Initialize
     init();
-    applyLanguage();
-
-    // Cleanup
-    window.addEventListener('beforeunload', () => {
-        cancelAnimationFrame(animationId);
-        clearInterval(removeInterval);
-        clearInterval(lifespanUpdateInterval);
-        stars.forEach(star => star.parentNode?.removeChild(star));
-    });
 });

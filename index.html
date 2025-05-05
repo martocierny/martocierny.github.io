@@ -3,79 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Star Map</title>
+    <title>Hviezdna Obloha</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="info-panel">
         <div class="counter">
-            <span class="label">Stars:</span>
+            <span class="label">Hviezd:</span>
             <span id="starCount">0</span>
         </div>
         <div class="phase">
-            <span class="label">Phase:</span>
-            <span id="phase">Loading...</span>
+            <span class="label">Fáza:</span>
+            <span id="phase">Načítava sa...</span>
         </div>
         <div class="controls">
-            <button id="toggleDayNight">Toggle Day/Night</button>
+            <button id="toggleDayNight">Prepnúť deň/noc</button>
             <div class="search-box">
-                <input type="text" id="starSearch" placeholder="Search star (ID/Name)">
-                <button id="searchBtn">Search</button>
+                <input type="text" id="starSearch" placeholder="Hľadať hviezdu (ID/Meno)">
+                <button id="searchBtn">Hľadať</button>
             </div>
-            <button id="aboutBtn">About</button>
-            <button id="translateBtn">Translate to Slovak</button>
+            <button id="showFavoritesBtn">★ Obľúbené</button>
         </div>
     </div>
 
-    <div class="mini-map">
-        <div class="viewport-indicator"></div>
+    <div class="zoom-controls">
+        <button id="zoomInBtn" class="zoom-btn">🔍+</button>
+        <button id="zoomOutBtn" class="zoom-btn">🔍-</button>
     </div>
 
-    <div id="starDetails" class="star-details">
-        <div class="close-btn">&times;</div>
-        <h3>Star Details</h3>
-        <div class="detail-row">
-            <span class="detail-label">ID:</span>
-            <span id="detail-id" class="detail-value"></span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Name:</span>
-            <input type="text" id="detail-name" class="detail-value">
-            <button id="renameBtn">Rename</button>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Age:</span>
-            <span id="detail-age" class="detail-value"></span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Remaining:</span>
-            <span id="detail-lifespan" class="detail-value"></span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Temperature:</span>
-            <span id="detail-temp" class="detail-value"></span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Size:</span>
-            <span id="detail-size" class="detail-value"></span>
+    <div class="star-details-container">
+        <div id="starDetails" class="star-details">
+            <div class="close-btn">&times;</div>
+            <h3>Detail hviezdy</h3>
+            <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span id="detail-id" class="detail-value"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Meno:</span>
+                <span id="detail-name" class="detail-value"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Vek:</span>
+                <span id="detail-age" class="detail-value"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Zostáva:</span>
+                <span id="detail-lifespan" class="detail-value"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Teplota:</span>
+                <span id="detail-temp" class="detail-value"></span>
+            </div>
+            <button id="toggleFavoriteBtn">❤ Pridať k obľúbeným</button>
         </div>
     </div>
 
-    <div id="aboutModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>About Star Map</h2>
-            <p>This is an interactive star map visualization. Features include:</p>
-            <ul>
-                <li>2500 unique stars with realistic properties</li>
-                <li>Dynamic star lifecycles with real-time countdown</li>
-                <li>Zoomable interface with mini-map navigation</li>
-                <li>Searchable stars by ID or custom name</li>
-                <li>Day/night mode toggle</li>
-                <li>Detailed star information panel</li>
-            </ul>
-            <p>Created with HTML, CSS and JavaScript.</p>
-        </div>
+    <div class="day-elements">
+        <div class="sun"></div>
+        <div class="clouds"></div>
+    </div>
+
+    <div class="glitch-footer">
+        <span class="glitch-text">Martin Čierny</span>
     </div>
 
     <script src="script.js"></script>
