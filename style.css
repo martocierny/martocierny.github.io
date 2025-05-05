@@ -4,16 +4,39 @@ body {
     background-color: #000;
     overflow: hidden;
     height: 100vh;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    transition: background-color 3s linear;
+    transform-origin: center center;
+}
+
+body.day-mode {
+    background-color: #87CEEB;
 }
 
 .star {
     position: absolute;
-    background-color: #fff;
     border-radius: 50%;
     pointer-events: none;
     will-change: transform, opacity;
     backface-visibility: hidden;
+    transition: opacity 1s ease-in-out, transform 0.3s ease;
+    box-shadow: 0 0 5px 1px currentColor;
+}
+
+.star.clickable {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.star.highlighted {
+    animation: pulse 1s infinite alternate;
+    box-shadow: 0 0 15px 5px gold;
+    z-index: 100;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.5); }
 }
 
 .info-panel {
@@ -25,7 +48,7 @@ body {
     background-color: rgba(0, 0, 0, 0.7);
     padding: 15px;
     border-radius: 8px;
-    min-width: 200px;
+    min-width: 250px;
     backdrop-filter: blur(5px);
 }
 
@@ -37,4 +60,166 @@ body {
 .label {
     font-weight: bold;
     margin-right: 10px;
+}
+
+.controls {
+    margin-top: 15px;
+}
+
+.controls button {
+    display: block;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    width: 100%;
+    cursor: pointer;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.controls button:hover {
+    background: #555;
+}
+
+.search-box {
+    margin-top: 15px;
+}
+
+.search-box input {
+    width: calc(100% - 22px);
+    padding: 8px;
+    margin-bottom: 8px;
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+}
+
+.search-box button {
+    width: 100%;
+}
+
+.star-details {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 200;
+    width: 300px;
+    display: none;
+    border: 1px solid #444;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.star-details h3 {
+    margin-top: 0;
+    color: gold;
+    text-align: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.detail-row {
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+}
+
+.detail-label {
+    font-weight: bold;
+    width: 90px;
+}
+
+.detail-value {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.detail-value input {
+    width: 100%;
+    padding: 5px;
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 3px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close-btn:hover {
+    color: white;
+}
+
+#renameBtn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background: #444;
+}
+
+.mini-map {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid #444;
+    z-index: 100;
+    backdrop-filter: blur(2px);
+}
+
+.viewport-indicator {
+    position: absolute;
+    border: 1px solid gold;
+    background-color: rgba(255, 215, 0, 0.1);
+    z-index: 101;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 300;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.modal-content {
+    background-color: #111;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #444;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: white;
 }
