@@ -2,33 +2,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const starfield = document.getElementById('starfield');
     const speedInfo = document.getElementById('speed-info');
     const stars = [];
-    const starCount = 1200; // Viac hviezd
+    const starCount = 1500;
     let speed = 0;
     let maxZ = 5000;
-    let scrollY = 0;
+    
+    // Načítať obrázok vopred pre lepší výkon
+    const starImage = new Image();
+    starImage.src = 'https://i.ibb.co/XGzqjyN/66c00b19-2931-4258-9b3e-a4f55c3ce066-removebg-preview.png';
 
-    // Vytvorenie hviezd
     function createStars() {
         for (let i = 0; i < starCount; i++) {
             addStar(Math.random() * maxZ);
         }
     }
 
-    // Pridanie novej hviezdy
     function addStar(z) {
         const star = document.createElement('div');
         star.className = 'star';
         
-        // Širší rozptyl po krajoch (1.5x širšie ako obrazovka)
         const x = (Math.random() - 0.5) * window.innerWidth * 3;
         const y = (Math.random() - 0.5) * window.innerHeight * 3;
+        const sizeMultiplier = 0.2 + Math.random() * 0.8;
         
         star.dataset.x = x;
         star.dataset.y = y;
         star.dataset.z = z;
-        star.dataset.boost = Math.random() > 0.9 ? 1.5 : 1; // 10% šanca na boost
+        star.dataset.size = sizeMultiplier;
+        star.dataset.boost = Math.random() > 0.9 ? 2 : 1;
         
-        // Vzdialené hviezdy blikajú
         if (z > maxZ * 0.7) {
             star.classList.add('far');
         }
@@ -38,33 +39,30 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStarPosition(star);
     }
 
-    // Aktualizácia pozície hviezdy
     function updateStarPosition(star) {
         const z = parseFloat(star.dataset.z);
         const boost = parseFloat(star.dataset.boost);
+        const sizeBase = parseFloat(star.dataset.size);
         
-        // Výpočet veľkosti a opacity
-        let scale = Math.min(15, 2000 / z) * boost;
-        // Náhodné zväčšenie pri prelete okolo nás
+        let scale = Math.min(30, 2000 / z) * boost * sizeBase;
         if (z < 500 && boost > 1) {
-            scale *= 1 + (500 - z)/500 * 2;
+            scale *= 1 + (500 - z)/500 * 3;
         }
         
-        const size = Math.max(0.5, scale);
+        const size = Math.max(10, scale);
         const opacity = Math.min(1, 1.5 - z/maxZ);
         
-        // Projekcia 3D -> 2D
-        const x = parseFloat(star.dataset.x) / z * 1000 + window.innerWidth/2;
-        const y = parseFloat(star.dataset.y) / z * 1000 + window.innerHeight/2;
+        const x = (parseFloat(star.dataset.x) / z * 1000 + window.innerWidth/2;
+        const y = (parseFloat(star.dataset.y) / z * 1000 + window.innerHeight/2;
         
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
         star.style.left = `${x}px`;
         star.style.top = `${y}px`;
         star.style.opacity = opacity;
+        star.style.filter = `brightness(${1 + (1 - z/maxZ)})`;
     }
 
-    // Animácia
     function animate() {
         stars.forEach(star => {
             let z = parseFloat(star.dataset.z) - speed;
@@ -85,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(animate);
     }
 
-    // Ovládanie rýchlosti
     window.addEventListener('wheel', (e) => {
         speed = Math.min(50, Math.max(0, speed + e.deltaY * 0.1));
         speedInfo.textContent = `Rýchlosť: ${Math.round(speed/50*100)}%`;
@@ -96,6 +93,9 @@ document.addEventListener('DOMContentLoaded', function() {
         stars.forEach(updateStarPosition);
     });
 
-    createStars();
-    animate();
+    // Počkáme na načítanie obrázka
+    starImage.onload = function() {
+        createStars();
+        animate();
+    };
 });
