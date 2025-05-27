@@ -15,11 +15,12 @@ body {
 
 .star {
     position: absolute;
-    background-color: white;
-    border-radius: 50%;
-    transform-origin: center center;
+    background-image: url('https://i.ibb.co/XGzqjyN/66c00b19-2931-4258-9b3e-a4f55c3ce066-removebg-preview.png');
+    background-size: contain;
+    background-repeat: no-repeat;
     will-change: transform, opacity;
     transition: transform 0.1s ease-out;
+    image-rendering: crisp-edges;
 }
 
 .far {
