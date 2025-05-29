@@ -21,18 +21,16 @@ body {
     will-change: transform, opacity;
     transition: transform 0.1s ease-out;
     image-rendering: crisp-edges;
-    width: 40px; /* Základná veľkosť */
-    height: 40px;
 }
 
 .far {
-    animation: blink 4s infinite ease-in-out;
-    opacity: 0.4;
+    animation: blink 3s infinite ease-in-out;
+    opacity: 0.3;
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 0.6; }
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.5; }
 }
 
 #speed-info {
