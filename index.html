@@ -1,14 +1,86 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Hviezdny Tunel</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Hviezdny Tunel</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000; 
+            height: 100vh;
+        }
+        .star {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: url('https://i.ibb.co/XGzqjyN/66c00b19-2931-4258-9b3e-a4f55c3ce066-removebg-preview.png') center/contain no-repeat;
+            will-change: transform;
+            image-rendering: crisp-edges;
+        }
+        #speed {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial;
+        }
+    </style>
 </head>
 <body>
-    <div id="starfield"></div>
-    <div id="speed-info">Rýchlosť: 0%</div>
-    <script src="script.js"></script>
+    <div id="speed">Rýchlosť: 0</div>
+    <script>
+        const stars = [];
+        const count = 400;
+        let speed = 0;
+        
+        // Vytvorenie hviezd
+        for(let i=0; i<count; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            // Náhodná 3D pozícia
+            star.x = (Math.random()-0.5) * 2000;
+            star.y = (Math.random()-0.5) * 2000;
+            star.z = Math.random() * 2000;
+            
+            document.body.appendChild(star);
+            stars.push(star);
+        }
+        
+        // Animácia
+        function animate() {
+            stars.forEach(star => {
+                star.z -= speed;
+                
+                // Ak hviezda prešla za nás, presunieme ju dozadu
+                if(star.z < 0) {
+                    star.z = 2000;
+                    star.x = (Math.random()-0.5) * 2000;
+                    star.y = (Math.random()-0.5) * 2000;
+                }
+                
+                // Premietnutie 3D do 2D
+                const scale = 1000 / (star.z + 1000);
+                const x = star.x * scale + window.innerWidth/2;
+                const y = star.y * scale + window.innerHeight/2;
+                
+                // Aktualizácia pozície
+                star.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+                star.style.opacity = scale;
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Ovládanie rýchlosti
+        window.addEventListener('wheel', e => {
+            speed += e.deltaY * 0.01;
+            speed = Math.max(0, Math.min(10, speed));
+            document.getElementById('speed').textContent = `Rýchlosť: ${speed.toFixed(1)}`;
+            e.preventDefault();
+        }, { passive: false });
+        
+        animate();
+    </script>
 </body>
 </html>
