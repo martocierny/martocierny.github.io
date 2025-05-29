@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Hviezdny Tunel</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Test Hviezd</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        .star {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: url('https://i.ibb.co/XGzqjyN/66c00b19-2931-4258-9b3e-a4f55c3ce066-removebg-preview.png') center/contain no-repeat;
+        }
+    </style>
 </head>
 <body>
-    <div id="starfield"></div>
-    <div id="speed-info">Rýchlosť: 0%</div>
-    <script src="script.js"></script>
+    <script>
+        // Test - vytvoríme 5 hviezd
+        for(let i=0; i<5; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random()*window.innerWidth + 'px';
+            star.style.top = Math.random()*window.innerHeight + 'px';
+            document.body.appendChild(star);
+        }
+        console.log("Testovacie hviezdy vytvorené");
+    </script>
 </body>
 </html>
